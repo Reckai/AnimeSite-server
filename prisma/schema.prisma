@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  name      String?
+  createdAt DateTime  @default(now())
+  Comment   Comment[]
+  Reply     Reply[]
+}
+
+model Comment {
+  id              String   @id @default(uuid())
+  content         String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  depth           Int
+  parentId        String?
+  replies         Reply[]
+  threadId        String?
+  viewerCanDelete Boolean
+  viewerCanUpdate Boolean
+  author          User[]
+}
+
+model Reply {
+  id              String    @id @default(uuid())
+  content         String
+  author          User[]
+  depth           Int
+  parentId        String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  viewerCanDelete Boolean
+  viewerCanUpdate Boolean
+  threadId        String?
+  Comment         Comment[]
+}
+
+model Anime {
+  id            String   @id @default(uuid())
+  name          String?
+  licenseNameRu String?
+  description   String?
+  genres        Genre[]
+  slug          String   @unique
+  studios       Studio[]
+  poster        Poster[]
+}
+
+model Studio {
+  id    String  @id @default(uuid())
+  name  String?
+  Anime Anime[]
+}
+
+model Genre {
+  id      String  @id @default(uuid())
+  name    String?
+  russian String?
+  Anime   Anime[]
+}
+
+model Poster {
+  id          String  @id @default(uuid())
+  originalUrl String
+  previewUrl  String
+  Anime       Anime[]
+}
+
+enum AnimeKindEnum {
+  tv
+
+  movie
+
+  ova
+
+  ona
+
+  special
+
+  tv_special
+
+  music
+
+  pv
+
+  cm
+}
