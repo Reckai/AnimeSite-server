@@ -16,6 +16,7 @@ import {
 import { Context } from './context'
 
 import {Anime} from "./Anime";
+import {AnimeStatus} from "@prisma/client";
 
 
 @Resolver(Anime)
@@ -35,9 +36,12 @@ export class AnimeResolver {
   return ctx.prisma.anime.findUnique({
    where:{
     slug: slug
-   }
+   },
+   include: {genres: true, studios: true, poster: true}
   })
  }
+
+
 
 
 }

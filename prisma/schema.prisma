@@ -8,12 +8,13 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  email     String    @unique
+  id        String      @id @default(uuid())
+  email     String      @unique
   name      String?
-  createdAt DateTime  @default(now())
+  createdAt DateTime    @default(now())
   Comment   Comment[]
   Reply     Reply[]
+  AnimeList AnimeList[]
 }
 
 model Comment {
@@ -44,15 +45,31 @@ model Reply {
   Comment         Comment[]
 }
 
+model AnimeList {
+  id     String      @id @default(uuid())
+  status AnimeStatus
+  user   User[]
+  anime  Anime[]
+}
+
+enum AnimeStatus {
+  WATCHING
+  COMPLETED
+  DELAYED
+  DROPPED
+  PLANNED
+}
+
 model Anime {
-  id            String   @id @default(uuid())
+  id            String      @id @default(uuid())
   name          String?
   licenseNameRu String?
   description   String?
   genres        Genre[]
-  slug          String   @unique
+  slug          String      @unique
   studios       Studio[]
   poster        Poster[]
+  animeLists    AnimeList[]
 }
 
 model Studio {

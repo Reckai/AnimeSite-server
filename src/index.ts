@@ -8,13 +8,14 @@ import * as tq from 'type-graphql'
 import { Context, context } from './context'
 
 import {AnimeResolver} from "./AnimeResolver";
+import {AnimeListResolver} from "./AnimeList/AnimeListResolver";
 
 
 const app = async () => {
 
 
   const schema = await tq.buildSchema({
-    resolvers: [ AnimeResolver],
+    resolvers: [ AnimeResolver, AnimeListResolver],
     scalarsMap: [{ type: GraphQLScalarType, scalar: DateTimeResolver }],
     validate: { forbidUnknownValues: false }
   })
