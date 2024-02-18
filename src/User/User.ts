@@ -1,6 +1,8 @@
+import 'reflect-metadata'
 import {Field, ID, ObjectType} from "type-graphql";
 import {AnimeList} from "../AnimeList/AnimeList";
 import {Reply} from "../Reply/Reply";
+import {Comment} from "../Comment/Comment";
 
 @ObjectType()
 export class User {
@@ -10,8 +12,11 @@ export class User {
     @Field()
     email: string;
 
-    @Field({ nullable: true })
-    name?: string;
+    @Field()
+    password: string;
+
+    @Field(()=> String, { nullable: true })
+    name?: string | null;
 
     @Field(() => [Comment], { nullable: true })
     comments?: Comment[];

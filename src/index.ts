@@ -9,15 +9,18 @@ import { Context, context } from './context'
 
 import {AnimeResolver} from "./AnimeResolver";
 import {AnimeListResolver} from "./AnimeList/AnimeListResolver";
+import {UserResolver} from "./User/UserResolver";
+import {CommentResolver} from "./Comment/CommentResolver";
 
 
 const app = async () => {
 
 
   const schema = await tq.buildSchema({
-    resolvers: [ AnimeResolver, AnimeListResolver],
+    resolvers: [ AnimeResolver, AnimeListResolver, UserResolver, CommentResolver],
     scalarsMap: [{ type: GraphQLScalarType, scalar: DateTimeResolver }],
-    validate: { forbidUnknownValues: false }
+    validate: { forbidUnknownValues: false },
+    
   })
 
   const server = new ApolloServer<Context>({ schema })

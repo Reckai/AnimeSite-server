@@ -19,7 +19,7 @@ export class AnimeListResolver {
 
 
     @Query(() => [AnimeListInfo], {nullable: true})
-    async getAnimeListInfo(@Arg('anime') animeId: string, @Ctx() ctx: Context): Promise<AnimeListInfo[] | null> {
+    async getAnimeListInfo(@Arg('animeId') animeId: string, @Ctx() ctx: Context): Promise<AnimeListInfo[] | null> {
 
 
         try {

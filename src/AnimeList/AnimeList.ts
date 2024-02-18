@@ -6,12 +6,11 @@ import {Anime} from "../Anime";
 
 export enum AnimeStatus {
     WATCHING = 'WATCHING',
-
     COMPLETED = 'COMPLETED',
     DELAYED = 'DELAYED',
     DROPPED = 'DROPPED',
     PLANNED = 'PLANNED',
-    
+
 }
 
 registerEnumType(AnimeStatus, {
@@ -28,4 +27,5 @@ export class AnimeList{
     user: User;
     @Field(() => Anime)
     anime: Anime;
+
 }

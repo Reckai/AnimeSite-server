@@ -3,6 +3,7 @@ import { ObjectType, Field, ID } from 'type-graphql'
 import {Genre} from "./Genre";
 import {Poster} from "./Poster";
 import {Studio} from "./Studio";
+import {AnimeList} from "./AnimeList/AnimeList";
 
 @ObjectType()
 export class Anime{
@@ -23,4 +24,7 @@ export class Anime{
     studios:       [Studio]
     @Field((type) => [Poster])
     poster: Poster
+
+    @Field((type) => [AnimeList], { nullable: true })
+    animeLists: AnimeList[]
 }
