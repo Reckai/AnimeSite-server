@@ -4,6 +4,7 @@ const prisma = new PrismaClient()
 
 export interface Context {
   prisma: PrismaClient
+  token?: string
 }
 
 export const context: Context = {

@@ -5,8 +5,8 @@ import {Arg, Ctx, Field, FieldResolver, ObjectType, Query, Resolver, Root,} from
 import {Context} from './context'
 
 import {Anime} from "./Anime";
-import {equal} from "node:assert";
-import {AnimeList,AnimeStatus} from "./AnimeList/AnimeList";
+
+import {AnimeStatus} from "./AnimeList/AnimeList";
 
 
 @ObjectType()

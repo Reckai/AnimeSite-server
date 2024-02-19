@@ -1,9 +1,10 @@
 import 'reflect-metadata'
 
-import {Arg, Ctx, Field, Int, Mutation, ObjectType, Query, Resolver,} from 'type-graphql'
+import {Arg, Authorized, Ctx, Field, Int, Mutation, ObjectType, Query, Resolver,} from 'type-graphql'
 
 import {Context} from '../context'
 import {AnimeList, AnimeStatus} from "./AnimeList";
+import {GraphQLError} from "graphql";
 
 
 @ObjectType()
@@ -19,6 +20,7 @@ export class AnimeListResolver {
 
 
     @Query(() => [AnimeListInfo], {nullable: true})
+
     async getAnimeListInfo(@Arg('animeId') animeId: string, @Ctx() ctx: Context): Promise<AnimeListInfo[] | null> {
 
 
@@ -44,8 +46,15 @@ export class AnimeListResolver {
         }
     }
 
+    @Authorized()
     @Mutation(() => Boolean)
-    async createUserWatchList(@Arg('animeId') animeId: string,@Arg('userId') userId:string, @Arg('status', type => AnimeStatus) status: AnimeStatus, @Ctx() ctx: Context): Promise<boolean> {
+    async createUserWatchList(@Arg('animeId') animeId: string, @Arg('userId') userId:string, @Arg('status', type => AnimeStatus) status: AnimeStatus, @Ctx() ctx: Context): Promise<boolean> {
+
+      if (!userId) throw new GraphQLError("you must be logged in to query this schema", {
+          extensions: {
+              code: 'UNAUTHENTICATED',
+          },
+      });
         try {
             await ctx.prisma.animeList.create({
                 data: {

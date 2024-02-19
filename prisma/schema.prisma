@@ -94,6 +94,17 @@ model Poster {
   Anime       Anime[]
 }
 
+model RefreshTokens {
+  role   Role
+  token  String @unique
+  userId String
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
 enum AnimeKindEnum {
   tv
 
