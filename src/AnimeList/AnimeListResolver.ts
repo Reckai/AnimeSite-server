@@ -46,16 +46,39 @@ export class AnimeListResolver {
         }
     }
 
-    @Authorized()
+    @Authorized(['ADMIN', 'USER'])
     @Mutation(() => Boolean)
-    async createUserWatchList(@Arg('animeId') animeId: string, @Arg('userId') userId:string, @Arg('status', type => AnimeStatus) status: AnimeStatus, @Ctx() ctx: Context): Promise<boolean> {
+    async changeStatusOfAnime(@Arg('animeId') animeId: string, @Arg('userId') userId:string, @Arg('status', type => AnimeStatus) status: AnimeStatus, @Ctx() ctx: Context): Promise<boolean> {
 
       if (!userId) throw new GraphQLError("you must be logged in to query this schema", {
           extensions: {
               code: 'UNAUTHENTICATED',
           },
       });
+
         try {
+            const existingAnimeList = await ctx.prisma.animeList.findFirst({
+                  where:{
+                      anime:{
+                          some:{
+                              id:animeId
+                          }
+                      },
+                        user:{
+                           some:{
+                                 id:userId
+                           }
+
+                      }
+                  }
+            })
+            if(existingAnimeList){
+                await ctx.prisma.animeList.update({
+                    where: {id: existingAnimeList.id},
+                    data: {status: status},
+                });
+                return true;
+            }
             await ctx.prisma.animeList.create({
                 data: {
                     anime: { connect: { id: animeId } },
@@ -71,23 +94,6 @@ export class AnimeListResolver {
         }
     }
 
-    @Mutation(() => Boolean)
-    async updateUserWatchList(
-        @Arg('animeListId') animeListId: string,
-        @Arg('newStatus', type => AnimeStatus) newStatus: AnimeStatus,
-        @Ctx() ctx: Context,
-    ): Promise<boolean> {
-        try {
-            await ctx.prisma.animeList.update({
-                where: { id: animeListId },
-                data: { status: newStatus },
-            });
-            console.log(`AnimeList with id ${animeListId} updated successfully.`);
-            return true;
-        } catch (error) {
-            console.error(`Error updating AnimeList with id ${animeListId}: ${error}`);
-            return false;
-        }}
 };
 
 

@@ -28,8 +28,7 @@ const anime = async ( ) => {
             studios: true
         }
     })
-    console.log(2)
-    console.log(res)
+
     return res
 }
 anime();

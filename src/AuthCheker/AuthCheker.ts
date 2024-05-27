@@ -1,24 +1,41 @@
-import { AuthChecker } from "type-graphql";
-import {Context} from "../context";
-
-import {getDataFromToken} from "../utils/utils";
+import {AuthChecker, AuthenticationError} from "type-graphql";
+import {context, Context} from "../context";
+import jwt from "jsonwebtoken";
 import {Roles} from "../Roles/Roles";
+import { Role } from "../Roles/Role";
 
 
 
-export const authChecker: AuthChecker<Context> = (
+export const authChecker: AuthChecker<Context> =  async (
 
-    { context: { token } }) => {
+    { context: { prisma, token } }) => {
     // Здесь мы можем прочитать пользователя из контекста
     // и проверить его разрешения в базе данных против аргумента `roles`
-    // который приходит от декоратора `@Authorized`, например, ["ADMIN", "MODERATOR"]
 
-    if (!token) {
-        console.log('no token')
-        return false;
+    if(!token){
+        return false
+
     }
-    const {userId, role} = getDataFromToken(token)
-    console.log('role', role, typeof role)
-    return Roles.includes(role)
 
-};
+    const verify= jwt.verify(token, process.env.AUTH_SECRET || '', (err, decoded) => {
+        if(err){
+            return false
+        }
+        return decoded
+    })
+    console.log(verify)
+    if(!verify){
+        return false
+    }
+    
+   const existingUser = await  prisma.user.findUnique({
+        where:{
+            id: verify.userId as string
+        }
+    })
+    if(!existingUser){
+        throw new AuthenticationError('Not authenticated');
+    }
+    return Roles.includes(existingUser.role as Role)
+
+    }

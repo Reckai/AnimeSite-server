@@ -26,5 +26,5 @@ export class Anime{
     poster: Poster
 
     @Field((type) => [AnimeList], { nullable: true })
-    animeLists: AnimeList[]
+    animeLists?: AnimeList[]
 }

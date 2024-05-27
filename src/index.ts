@@ -1,45 +1,62 @@
-import 'reflect-metadata'
-
-import { ApolloServer } from '@apollo/server'
-import { startStandaloneServer } from '@apollo/server/standalone'
+import 'reflect-metadata';
+import express from 'express';
+import {ApolloServer} from "@apollo/server"
 import {GraphQLScalarType} from 'graphql'
-import { DateTimeResolver } from 'graphql-scalars'
+import {DateTimeResolver} from 'graphql-scalars'
 import * as tq from 'type-graphql'
 import {context, Context} from './context'
-
+import cors from 'cors';
 import {AnimeResolver} from "./AnimeResolver";
 import {AnimeListResolver} from "./AnimeList/AnimeListResolver";
 import {UserResolver} from "./User/UserResolver";
 import {CommentResolver} from "./Comment/CommentResolver";
 import {authChecker} from "./AuthCheker/AuthCheker";
+import {expressMiddleware} from "@apollo/server/express4";
+
+import http from 'http';
+import {ApolloServerPluginDrainHttpServer} from '@apollo/server/plugin/drainHttpServer';
+
+import { RefreshTokenResolver } from './Auth/Auth';
 
 
 
-const app = async () => {
 
+const app = express()
 
-  const schema = await tq.buildSchema({
-    resolvers: [ AnimeResolver, AnimeListResolver, UserResolver, CommentResolver],
-    scalarsMap: [{ type: GraphQLScalarType, scalar: DateTimeResolver }],
-    validate: { forbidUnknownValues: false },
-    authChecker
-  })
+const server1 = async () => {
 
-  const server = new ApolloServer<Context>({ schema })
+    const schema = await tq.buildSchema({
+        resolvers: [AnimeResolver, AnimeListResolver, UserResolver, CommentResolver, RefreshTokenResolver
+        ],
+        scalarsMap: [{type: GraphQLScalarType, scalar: DateTimeResolver}],
+        validate: {forbidUnknownValues: false},
+        authChecker
+    })
+    const httpServer = http.createServer(app);
+    const server = new ApolloServer<Context>({schema, plugins: [ApolloServerPluginDrainHttpServer({httpServer})],})
 
-  const { url } = await startStandaloneServer(server, {
-    context: async ({ req }) => {
-      const  token = req.headers.authorization || '2'
+    await server.start()
+    app.use('/', cors<cors.CorsRequest>({
+        origin: true, credentials: true,
 
-      return {
-        prisma: context.prisma, token: token
-      }
-    }
-  })
-  console.log(`
-🚀 Server ready at: ${url}
-⭐️  See sample queries: http://pris.ly/e/ts/graphql-typegraphql#using-the-graphql-api`
-  )
+    }), express.json(), expressMiddleware(server, {
+        context: async ({req, res, }) => {
+
+           const token = req.headers.authorization || ''
+
+           const noBearer = token.split(' ')[1]
+
+            return {
+                prisma: context.prisma, token: noBearer,  res,  req
+            }
+        }
+    })
+    )
+
+    await new Promise<void>((resolve) => httpServer.listen({port: 4000}, resolve));
+    console.log(`🚀 Server ready at http://localhost:4000/`);
+
 }
 
-app()
+
+server1()

@@ -8,16 +8,16 @@ export class Comment {
     @Field(() => ID)
     id: string;
 
-    @Field()
+    @Field(()=> String)
     content: string;
 
-    @Field()
+    @Field(()=> String)
     createdAt: Date;
 
-    @Field()
+    @Field(()=> String)
     updatedAt: Date;
 
-    @Field()
+    @Field(()=> Number)
     depth: number;
 
     @Field({ nullable: true })
