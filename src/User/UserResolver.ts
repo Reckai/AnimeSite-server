@@ -11,6 +11,9 @@ import {GraphQLError} from "graphql";
 import {issueJWTTokenForSession} from "../helpers/Tokens/IssueJWTPair";
 import jwt from "jsonwebtoken";
 import {ACCESS_TOKEN, EXPIRES_IN_30D, HTTP_ONLY} from "../constants";
+import { generateVerificationToken } from '../VerificationToken/Service/VerificationTokenService';
+import { sendVerificationEmail } from '../Resend/ResendService';
+import { VerificationToken } from '@prisma/client';
 
 
 @InputType()
@@ -28,8 +31,8 @@ class AuthPayload {
 
 @Resolver(User)
 export class UserResolver {
-    @Mutation((returns) => AuthPayload)
-    async signupUser(@Arg('email') email: string, @Arg('password') password: string,  @Ctx() ctx: Context,): Promise<AuthPayload> {
+    @Mutation((returns) => String)
+    async signupUser(@Arg('email') email: string, @Arg('password') password: string,  @Ctx() ctx: Context,): Promise<String> {
        const userExists = await ctx.prisma.user.findUnique({
            where: {
                email: email
@@ -43,44 +46,57 @@ export class UserResolver {
         const user  = await ctx.prisma.user.create({
             data: {email, password: hashedPassword, name: nameFromEmail, createdAt: new Date()},
         })
-        const session = await issueJWTTokenForSession(user.id)
-         const existingUser = await ctx.prisma.user.findUnique({
-            where: {
-                email: email
-            }
-        })
-        ctx.res.cookie(ACCESS_TOKEN, session, { httpOnly: HTTP_ONLY, maxAge: EXPIRES_IN_30D  })
-        return {
-            user: existingUser as User,
-        }
+
+        const verificationToken = await generateVerificationToken(user.email) as VerificationToken
+        await sendVerificationEmail( verificationToken.email, verificationToken.token)
+     
+     
+        return 'Check your email for verification link'
+        // ctx.res.cookie(ACCESS_TOKEN, session, { httpOnly: HTTP_ONLY, maxAge: EXPIRES_IN_30D  })
+        // return {
+        //     user: existingUser as User,
+        // }
     }
 
 
 
-    @Mutation((returns) => AuthPayload)
-    async loginUser(@Arg('args') args: UserLoginInput, @Ctx() ctx: Context,): Promise<AuthPayload> {
+    @Mutation((returns) => AuthPayload || String) 
+    async loginUser(@Arg('args') args: UserLoginInput, @Ctx() ctx: Context,): Promise<AuthPayload | String>  {
+try {
+    
+    
+    const user = await ctx.prisma.user.findUnique({
+        where: {
+            email: args.email
 
-        const user = await ctx.prisma.user.findUnique({
-            where: {
-                email: args.email
-
-            },
-            include:{
-                refreshToken: true
-            }
-        })
-        if (!user) {
-            throw new GraphQLError('No such user found')
+        },
+        include:{
+            refreshToken: true
         }
-        const valid = await bcrypt.compare(args.password, user.password??"")
-        if (!valid) {
-            throw new GraphQLError('Invalid password or email')
-        }
-       const session = await issueJWTTokenForSession(user.id)
-        ctx.res.cookie(ACCESS_TOKEN, session, { httpOnly: HTTP_ONLY, maxAge: EXPIRES_IN_30D})
-        return {
-            user: user as User,
-        }
+    })
+    if (!user) {
+        throw new GraphQLError('No such user found')
+    }
+    const valid = await bcrypt.compare(args.password, user.password??"")
+    if (!valid) {
+        throw new GraphQLError('Invalid password or email')
+    }
+    if(!user.emailVerified){
+        const verificationToken = await generateVerificationToken(user.email) as VerificationToken
+        await sendVerificationEmail(verificationToken.email, verificationToken.token ) 
+        throw new GraphQLError('Email not verified, check your email for verification link')
+    }
+   const session = await issueJWTTokenForSession(user.id)
+    ctx.res.cookie(ACCESS_TOKEN, session, { httpOnly: HTTP_ONLY, maxAge: EXPIRES_IN_30D})
+    return {
+        user: user as User,
+    }
+} catch (error) {
+ if(error instanceof GraphQLError){
+     throw error
+ }
+ throw new GraphQLError('Somethssssing went wrong')
+}
     }
     @Authorized(['ADMIN', 'USER'])
     @Query((returns) => User)
@@ -88,7 +104,7 @@ export class UserResolver {
        const userId = jwt.decode(ctx.token as string)
         return  ctx.prisma.user.findUnique({
             where: {
-                id: '18133f3f-015e-4c96-a1e8-66a7e65c9948'
+                id: ctx.userId
             },
             select:{
                 id: true,

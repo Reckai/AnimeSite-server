@@ -10,7 +10,7 @@ export function getTokenPayload(token: string) {
 
     try {
         const decoded =  jwt.verify(token, getEnv('JWT_SECRET'))  as JwtPayload;
-        console.log(decoded)
+        console.log(decoded,'decoded')
         return  decoded;
     } catch (err) {
 

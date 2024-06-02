@@ -15,6 +15,5 @@ COPY . .
 
 RUN npx prisma generate
 
-
 # Запускаем ваше приложение при старте контейнера
 CMD ["npm", "run", "dev"]

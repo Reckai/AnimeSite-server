@@ -23,7 +23,7 @@ export const authChecker: AuthChecker<Context> =  async (
         }
         return decoded
     })
-    console.log(verify)
+    console.log(verify,'verify')
     if(!verify){
         return false
     }

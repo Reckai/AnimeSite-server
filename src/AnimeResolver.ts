@@ -7,8 +7,8 @@ import {Context} from './context'
 import {Anime} from "./Anime";
 
 import {AnimeStatus} from "./AnimeList/AnimeList";
-import { GraphQLError } from 'graphql';
-import { issueJWTPair } from './helpers/Tokens/IssueJWTPair';
+
+
 
 
 @ObjectType()
@@ -16,6 +16,12 @@ class AnimeListStatusDistribution {
     @Field(type => AnimeStatus) status: AnimeStatus;
 
     @Field(type => Number) count: number;
+}
+
+ObjectType()
+class AnimeResponse extends Anime {
+    @Field(type => [AnimeListStatusDistribution])
+    userWatchListStatusDistributions: AnimeListStatusDistribution[];
 }
 
 @Resolver(Anime)
@@ -53,38 +59,25 @@ export class AnimeResolver {
     }
 
 
-    // @Authorized(['ADMIN', 'USER'])
-    @Query(() => Anime)
+    @Query(() =>Anime )
     async anime(@Arg('slug') slug: string, @Ctx() ctx: Context) {
-        console.log(ctx.req.body.queryName)
-  ctx.res.cookie('ads','asdasdad',{ maxAge:1000*60*60*24*30, path:'http://localhost:3000/'})
-       try{
+  try{
         const anime = await ctx.prisma.anime.findUnique({
             where: {
                 slug: slug
             }, include: {
-                genres: true, studios: true, poster: true, animeLists: ctx.userId && slug ? {
-                    where:{
-                        AND: [{anime:{
-                            some:{
-                                slug
-                            }
-                            }},
-                            {
-                                user:{
-                                    some:{
-                                        id: ctx.userId
-                                    }
-                                }
-
-                            }]
-
-
+                
+                genres: true, studios: true, poster: true,  animeLists: ctx.userId ? {
+                    where: {
+                      AND: [
+                        { anime: { some: { slug } } },
+                        { user: { some: { id: ctx.userId } } }
+                      ]
                     }
-                }: undefined
+                  } : undefined
             }
         })
-
+        
         return anime;
        }catch (e){
            console.log(e)}

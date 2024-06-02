@@ -7,6 +7,7 @@ const prisma = new PrismaClient()
 export interface Context extends BaseContext{
   prisma: PrismaClient,
   res?:any,
+
   token?:string,
   userId?:string,
   req?:any,

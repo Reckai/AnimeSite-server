@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   main:
     container_name: main
@@ -10,10 +12,11 @@ services:
     ports:
       - 4000:4000
       - 9229:9229
-    command: npm run dev
+    command: bash -c "npx prisma generate && npx prisma migrate dev --name init && npm run dev"
     depends_on:
       - postgres
     restart: always
+
   postgres:
     container_name: postgres
     image: postgres:15
@@ -26,5 +29,6 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql@15/data
     restart: always
+
 volumes:
   pgdata:

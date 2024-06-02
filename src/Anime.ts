@@ -4,6 +4,7 @@ import {Genre} from "./Genre";
 import {Poster} from "./Poster";
 import {Studio} from "./Studio";
 import {AnimeList} from "./AnimeList/AnimeList";
+import { AnimeListStatusDistribution } from './AnimeListStatusDistribution';
 
 @ObjectType()
 export class Anime{
@@ -27,4 +28,8 @@ export class Anime{
 
     @Field((type) => [AnimeList], { nullable: true })
     animeLists?: AnimeList[]
+    
+    @Field(() => [AnimeListStatusDistribution])
+    userWatchListStatusDistributions: AnimeListStatusDistribution[];
+  
 }

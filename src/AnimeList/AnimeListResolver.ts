@@ -45,55 +45,61 @@ export class AnimeListResolver {
             return null;
         }
     }
-
     @Authorized(['ADMIN', 'USER'])
     @Mutation(() => Boolean)
-    async changeStatusOfAnime(@Arg('animeId') animeId: string, @Arg('userId') userId:string, @Arg('status', type => AnimeStatus) status: AnimeStatus, @Ctx() ctx: Context): Promise<boolean> {
-
-      if (!userId) throw new GraphQLError("you must be logged in to query this schema", {
-          extensions: {
+    async changeStatusOfAnime(
+        @Arg('animeId') animeId: string,
+        @Arg('userId') userId: string,
+        @Arg('status', () => AnimeStatus) status: AnimeStatus,
+        @Ctx() ctx: Context
+      ): Promise<boolean> {
+    
+        if (!userId) {
+          throw new GraphQLError("You must be logged in to query this schema", {
+            extensions: {
               code: 'UNAUTHENTICATED',
-          },
-      });
-
+            },
+          });
+        }
+     console.log('userId', userId)
         try {
-            const existingAnimeList = await ctx.prisma.animeList.findFirst({
-                  where:{
-                      anime:{
-                          some:{
-                              id:animeId
-                          }
-                      },
-                        user:{
-                           some:{
-                                 id:userId
-                           }
-
-                      }
-                  }
-            })
-            if(existingAnimeList){
-                await ctx.prisma.animeList.update({
-                    where: {id: existingAnimeList.id},
-                    data: {status: status},
-                });
-                return true;
-            }
-            await ctx.prisma.animeList.create({
-                data: {
-                    anime: { connect: { id: animeId } },
-                    user: { connect: { id: userId } },
-                    status: status,
+          const existingAnimeList = await ctx.prisma.animeList.findFirst({
+            where: {
+              anime: {
+                some: {
+                  id: animeId,
                 },
+              },
+              user: {
+                some: {
+                  id: userId,
+                },
+              },
+            },
+          });
+    
+          if (existingAnimeList) {
+            await ctx.prisma.animeList.update({
+              where: { id: existingAnimeList.id },
+              data: { status: status },
+            });
+          } else {
+            await ctx.prisma.animeList.create({
+              data: {
+                anime: { connect: { id: animeId } },
+                user: { connect: { id: userId } },
+                status: status,
+              },
             });
             console.log(`AnimeList for anime with id ${animeId} created successfully.`);
-            return true;
+          }
+    
+          return true;
         } catch (error) {
-            console.error(`Error creating AnimeList for anime with id ${animeId}: ${error}`);
-            return false;
+          console.error(`Error changing status of AnimeList for anime with id ${animeId}: ${error}`);
+          return false;
         }
-    }
-
+      }
 };
 
 

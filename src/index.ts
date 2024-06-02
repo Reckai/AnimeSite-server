@@ -17,6 +17,8 @@ import http from 'http';
 import {ApolloServerPluginDrainHttpServer} from '@apollo/server/plugin/drainHttpServer';
 
 import { RefreshTokenResolver } from './Auth/Auth';
+import jwt from "jsonwebtoken";
+import { VerificationTokenResolver } from './VerificationToken/VerifictationTokenResolver';
 
 
 
@@ -27,7 +29,7 @@ const server1 = async () => {
 
     const schema = await tq.buildSchema({
         resolvers: [AnimeResolver, AnimeListResolver, UserResolver, CommentResolver, RefreshTokenResolver
-        ],
+       ,VerificationTokenResolver ],
         scalarsMap: [{type: GraphQLScalarType, scalar: DateTimeResolver}],
         validate: {forbidUnknownValues: false},
         authChecker
@@ -45,9 +47,11 @@ const server1 = async () => {
            const token = req.headers.authorization || ''
 
            const noBearer = token.split(' ')[1]
+           if(!noBearer) return {prisma: context.prisma, token: '', res, req}
+           const {userId} = jwt.decode(noBearer) as {userId: string}
 
-            return {
-                prisma: context.prisma, token: noBearer,  res,  req
+           return {
+                prisma: context.prisma, token: noBearer,  res,  req,userId
             }
         }
     })
