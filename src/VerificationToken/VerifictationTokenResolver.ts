@@ -15,10 +15,12 @@ class VerifyEmailResponse {
 
 @Resolver(VerificationToken)
 export class VerificationTokenResolver {
-  @Mutation((returns) => VerifyEmailResponse)   
+  @Mutation((returns) => VerifyEmailResponse)
   async VerifyEmailByToken(@Arg('token') token: string,@Ctx() context: Context): Promise<VerifyEmailResponse> {
-    console.log('verificationtoken')
+ try{
+ 
   const existingToken = await getVerificationTokenByToken(token)
+
   if(!existingToken){
     throw new GraphQLError('Invalid token',{extensions:{code:'SOMETHING_WENT_WRONG'}})
 
@@ -30,7 +32,7 @@ export class VerificationTokenResolver {
     data: {
         emailVerified: new Date(new Date().getTime())
     }
-  }) 
+  })
   await  context.prisma.verificationToken.delete({
     where:{
         id:existingToken.id
@@ -40,4 +42,12 @@ export class VerificationTokenResolver {
     message: 'Email verified successfully',
     success: true
   }
+ }
+ catch(e){
+     console.log(e)
+  if (e instanceof GraphQLError) {
+    throw e;
+  }
+  throw new GraphQLError('Something went wrong',{extensions:{code:'SOMETHING_WENT_WRONG'}})
+ }
 }}

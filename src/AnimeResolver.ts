@@ -66,7 +66,7 @@ export class AnimeResolver {
             where: {
                 slug: slug
             }, include: {
-                
+
                 genres: true, studios: true, poster: true,  animeLists: ctx.userId ? {
                     where: {
                       AND: [
@@ -77,7 +77,7 @@ export class AnimeResolver {
                   } : undefined
             }
         })
-        
+       console.log(anime)
         return anime;
        }catch (e){
            console.log(e)}

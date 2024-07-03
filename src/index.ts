@@ -16,7 +16,7 @@ import {expressMiddleware} from "@apollo/server/express4";
 import http from 'http';
 import {ApolloServerPluginDrainHttpServer} from '@apollo/server/plugin/drainHttpServer';
 
-import { RefreshTokenResolver } from './Auth/Auth';
+import {AuthResolver, } from './Auth/Auth';
 import jwt from "jsonwebtoken";
 import { VerificationTokenResolver } from './VerificationToken/VerifictationTokenResolver';
 
@@ -28,7 +28,7 @@ const app = express()
 const server1 = async () => {
 
     const schema = await tq.buildSchema({
-        resolvers: [AnimeResolver, AnimeListResolver, UserResolver, CommentResolver, RefreshTokenResolver
+        resolvers: [AnimeResolver, AnimeListResolver, UserResolver, CommentResolver, AuthResolver
        ,VerificationTokenResolver ],
         scalarsMap: [{type: GraphQLScalarType, scalar: DateTimeResolver}],
         validate: {forbidUnknownValues: false},

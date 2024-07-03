@@ -2,7 +2,7 @@
 
 import 'reflect-metadata'
 import {Arg, Authorized, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver} from "type-graphql";
-import {User} from "./User"
+
 import {Context} from "../context";
 
 import bcrypt from 'bcryptjs';
@@ -14,6 +14,8 @@ import {ACCESS_TOKEN, EXPIRES_IN_30D, HTTP_ONLY} from "../constants";
 import { generateVerificationToken } from '../VerificationToken/Service/VerificationTokenService';
 import { sendVerificationEmail } from '../Resend/ResendService';
 import { VerificationToken } from '@prisma/client';
+import {exclude} from "../utils/exclude";
+import {User} from "./User";
 
 
 @InputType()
@@ -26,8 +28,7 @@ class UserLoginInput {
 
 @ObjectType()
 class AuthPayload {
-    @Field() user: User;
-}
+    @Field() user : User};
 
 @Resolver(User)
 export class UserResolver {
@@ -49,8 +50,8 @@ export class UserResolver {
 
         const verificationToken = await generateVerificationToken(user.email) as VerificationToken
         await sendVerificationEmail( verificationToken.email, verificationToken.token)
-     
-     
+
+
         return 'Check your email for verification link'
         // ctx.res.cookie(ACCESS_TOKEN, session, { httpOnly: HTTP_ONLY, maxAge: EXPIRES_IN_30D  })
         // return {
@@ -60,19 +61,17 @@ export class UserResolver {
 
 
 
-    @Mutation((returns) => AuthPayload || String) 
+    @Mutation((returns) => AuthPayload)
     async loginUser(@Arg('args') args: UserLoginInput, @Ctx() ctx: Context,): Promise<AuthPayload | String>  {
 try {
-    
-    
+
+
     const user = await ctx.prisma.user.findUnique({
         where: {
             email: args.email
 
         },
-        include:{
-            refreshToken: true
-        }
+
     })
     if (!user) {
         throw new GraphQLError('No such user found')
@@ -83,13 +82,13 @@ try {
     }
     if(!user.emailVerified){
         const verificationToken = await generateVerificationToken(user.email) as VerificationToken
-        await sendVerificationEmail(verificationToken.email, verificationToken.token ) 
+        await sendVerificationEmail(verificationToken.email, verificationToken.token )
         throw new GraphQLError('Email not verified, check your email for verification link')
     }
    const session = await issueJWTTokenForSession(user.id)
     ctx.res.cookie(ACCESS_TOKEN, session, { httpOnly: HTTP_ONLY, maxAge: EXPIRES_IN_30D})
     return {
-        user: user as User,
+        user: user as User
     }
 } catch (error) {
  if(error instanceof GraphQLError){

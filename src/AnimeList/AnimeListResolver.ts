@@ -46,60 +46,106 @@ export class AnimeListResolver {
         }
     }
     @Authorized(['ADMIN', 'USER'])
-    @Mutation(() => Boolean)
+    @Mutation(() => AnimeStatus)
     async changeStatusOfAnime(
         @Arg('animeId') animeId: string,
-        @Arg('userId') userId: string,
         @Arg('status', () => AnimeStatus) status: AnimeStatus,
         @Ctx() ctx: Context
-      ): Promise<boolean> {
-    
-        if (!userId) {
-          throw new GraphQLError("You must be logged in to query this schema", {
-            extensions: {
-              code: 'UNAUTHENTICATED',
-            },
-          });
+    ): Promise<AnimeStatus> {
+
+        if (!ctx.userId) {
+            throw new GraphQLError("You must be logged in to query this schema", {
+                extensions: {
+                    code: 'UNAUTHENTICATED',
+                },
+            });
         }
-     console.log('userId', userId)
+        console.log('userId', ctx.userId)
         try {
-          const existingAnimeList = await ctx.prisma.animeList.findFirst({
-            where: {
-              anime: {
-                some: {
-                  id: animeId,
+            const existingAnimeList = await ctx.prisma.animeList.findFirst({
+                where: {
+                    anime: {
+                        some: {
+                            id: animeId,
+                        },
+                    },
+                    user: {
+                        some: {
+                            id: ctx.userId,
+                        },
+                    },
                 },
-              },
-              user: {
-                some: {
-                  id: userId,
-                },
-              },
-            },
-          });
-    
-          if (existingAnimeList) {
-            await ctx.prisma.animeList.update({
-              where: { id: existingAnimeList.id },
-              data: { status: status },
             });
-          } else {
-            await ctx.prisma.animeList.create({
-              data: {
-                anime: { connect: { id: animeId } },
-                user: { connect: { id: userId } },
-                status: status,
-              },
-            });
-            console.log(`AnimeList for anime with id ${animeId} created successfully.`);
-          }
-    
-          return true;
+            let StatusOfAnime = AnimeStatus.WATCHING
+            if (existingAnimeList) {
+                await ctx.prisma.animeList.update({
+                    where: { id: existingAnimeList.id },
+                    data: { status },
+                });
+                StatusOfAnime = status
+            } else {
+                await ctx.prisma.animeList.create({
+                    data: {
+                        anime: { connect: { id: animeId } },
+                        user: { connect: { id: ctx.userId } },
+                        status: status,
+                    },
+                });
+                StatusOfAnime = status
+                console.log(`AnimeList for anime with id ${animeId} created successfully.`);
+            }
+
+            return StatusOfAnime;
         } catch (error) {
-          console.error(`Error changing status of AnimeList for anime with id ${animeId}: ${error}`);
-          return false;
+            console.error(`Error changing status of AnimeList for anime with id ${animeId}: ${error}`);
+            throw new GraphQLError('Something went wrong');
         }
-      }
+    }
+    @Authorized(['ADMIN', 'USER'])
+    @Mutation(() => Boolean)
+    async deleteAnimeStatus(
+        @Arg('animeId') animeId: string,
+
+        @Ctx() ctx: Context
+    ): Promise<Boolean> {
+
+        if (!ctx.userId) {
+            throw new GraphQLError("You must be logged in to query this schema", {
+                extensions: {
+                    code: 'UNAUTHENTICATED',
+                },
+            });
+        }
+        console.log('userId', ctx.userId)
+        try {
+            const existingAnimeList = await ctx.prisma.animeList.findFirst({
+                where: {
+                    anime: {
+                        some: {
+                            id: animeId,
+                        },
+                    },
+                    user: {
+                        some: {
+                            id: ctx.userId,
+                        },
+                    },
+                },
+            });
+
+            if (existingAnimeList) {
+                await ctx.prisma.animeList.delete({
+                    where: { id: existingAnimeList.id },
+
+                });
+            }
+
+            return true;
+        } catch (error) {
+            console.error(`Error changing status of AnimeList for anime with id ${animeId}: ${error}`);
+            throw new GraphQLError('Something went wrong');
+        }
+    }
 };
 
 
