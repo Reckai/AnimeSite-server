@@ -16,6 +16,7 @@ import { sendVerificationEmail } from '../Resend/ResendService';
 import { VerificationToken } from '@prisma/client';
 import {exclude} from "../utils/exclude";
 import {User} from "./User";
+import {createClient} from "redis";
 
 
 @InputType()
@@ -65,6 +66,7 @@ export class UserResolver {
     async loginUser(@Arg('args') args: UserLoginInput, @Ctx() ctx: Context,): Promise<AuthPayload | String>  {
 try {
 
+    const redisClient = await  createClient().connect();
 
     const user = await ctx.prisma.user.findUnique({
         where: {

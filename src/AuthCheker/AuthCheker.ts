@@ -3,6 +3,8 @@ import {context, Context} from "../context";
 import jwt from "jsonwebtoken";
 import {Roles} from "../Roles/Roles";
 import { Role } from "../Roles/Role";
+import {createClient} from "redis";
+import {Session} from "../SessionController/Session";
 
 
 
@@ -14,28 +16,20 @@ export const authChecker: AuthChecker<Context> =  async (
 
     if(!token){
         return false
-
     }
 
-    const verify= jwt.verify(token, process.env.AUTH_SECRET || '', (err, decoded) => {
-        if(err){
+    try{
+        const redis = createClient()
+        const redisClient = await  redis.connect();
+        const sessionData = jwt.decode(token) as {userId: string, sessionId: string}
+        let existingSession = await redisClient.get(`USER:${sessionData.sessionId}:${sessionData.userId}`)
+        if(!existingSession){
             return false
         }
-        return decoded
-    })
-    console.log(verify,'verify')
-    if(!verify){
+        await redisClient.quit()
+const parsedSession = JSON.parse(existingSession) as Session
+        return Roles.includes(parsedSession.role)
+    }catch (e){
         return false
     }
-    
-   const existingUser = await  prisma.user.findUnique({
-        where:{
-            id: verify.userId as string
-        }
-    })
-    if(!existingUser){
-        throw new AuthenticationError('Not authenticated');
-    }
-    return Roles.includes(existingUser.role as Role)
-
     }

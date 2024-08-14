@@ -1,4 +1,4 @@
-import {Anime} from "./Anime";
+import {Anime} from "./Animes/Anime";
 import {Field, ID, ObjectType} from "type-graphql";
 
 @ObjectType()

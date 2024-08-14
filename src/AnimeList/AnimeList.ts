@@ -1,7 +1,8 @@
 import 'reflect-metadata'
 import {ObjectType, Field, ID, registerEnumType} from 'type-graphql'
 import {User} from "../User/User";
-import {Anime} from "../Anime";
+import {Anime} from "../Animes/Anime";
+import { CacheControl } from '../cache-control';
 
 
 export enum AnimeStatus {
@@ -17,7 +18,9 @@ registerEnumType(AnimeStatus, {
     name: 'AnimeStatus',
     description: 'Статусы аниме в списке пользователя',
 });
+
 @ObjectType()
+@CacheControl({ maxAge: 60 })
 export class AnimeList{
     @Field((type) => ID)
     id:        String;

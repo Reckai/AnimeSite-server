@@ -6,25 +6,31 @@ import {DateTimeResolver} from 'graphql-scalars'
 import * as tq from 'type-graphql'
 import {context, Context} from './context'
 import cors from 'cors';
-import {AnimeResolver} from "./AnimeResolver";
+import {AnimeResolver} from "./Animes/AnimeResolver";
 import {AnimeListResolver} from "./AnimeList/AnimeListResolver";
 import {UserResolver} from "./User/UserResolver";
 import {CommentResolver} from "./Comment/CommentResolver";
 import {authChecker} from "./AuthCheker/AuthCheker";
 import {expressMiddleware} from "@apollo/server/express4";
-
+import responseCachePlugin from "@apollo/server-plugin-response-cache";
 import http from 'http';
 import {ApolloServerPluginDrainHttpServer} from '@apollo/server/plugin/drainHttpServer';
-
+import { ApolloServerPluginCacheControl } from "@apollo/server/plugin/cacheControl";
 import {AuthResolver, } from './Auth/Auth';
 import jwt from "jsonwebtoken";
 import { VerificationTokenResolver } from './VerificationToken/VerifictationTokenResolver';
+import { createClient } from 'redis';
+import session from 'express-session';
+import { KeyvAdapter } from '@apollo/utils.keyvadapter';
+import Keyv from 'keyv';
+import { generateSessionKey } from './utils/genSessionId';
+const RedisStore = require("connect-redis").default
 
 
 
 
 const app = express()
-
+const keyv= new Keyv("redis://:@localhost:6379")
 const server1 = async () => {
 
     const schema = await tq.buildSchema({
@@ -35,9 +41,36 @@ const server1 = async () => {
         authChecker
     })
     const httpServer = http.createServer(app);
-    const server = new ApolloServer<Context>({schema, plugins: [ApolloServerPluginDrainHttpServer({httpServer})],})
+    const server = new ApolloServer<Context>({schema, plugins: [ApolloServerPluginDrainHttpServer({httpServer}), ApolloServerPluginCacheControl(),responseCachePlugin()],
+    cache: new KeyvAdapter(keyv),
+    
+  })
+
+    const redisClient = await createClient().connect()
+    let redisStore = new RedisStore({
+        client: redisClient,
+        disableTouch: true,
+      })
+      
 
     await server.start()
+    app.use(
+        session({
+            name: 'qid',
+          store: redisStore,
+          cookie: {
+            maxAge: 2592000000, //long time
+            httpOnly: true,
+            secure: false,  //cookie only works in https (we are developing)
+            sameSite: 'lax'
+          },
+        genid: generateSessionKey,
+          resave: false, // required: force lightweight session keep alive (touch)
+          saveUninitialized: false, // recommended: only save session when data exists
+          secret: "keyboard cat",
+        }),
+      )
+      
     app.use('/', cors<cors.CorsRequest>({
         origin: true, credentials: true,
 

@@ -1,17 +1,19 @@
 import 'reflect-metadata'
 import { ObjectType, Field, ID } from 'type-graphql'
-import {Genre} from "./Genre";
-import {Poster} from "./Poster";
-import {Studio} from "./Studio";
-import {AnimeList} from "./AnimeList/AnimeList";
+import {Genre} from "../Genre";
+import {Poster} from "../Poster";
+import {Studio} from "../Studio";
+import {AnimeList} from "../AnimeList/AnimeList";
 import { AnimeListStatusDistribution } from './AnimeListStatusDistribution';
+import { CacheControl } from '../cache-control';
 
-@ObjectType()
+@ObjectType({})
+@CacheControl({ maxAge: 60 })
 export class Anime{
-    @Field((type) => ID)
+    @Field((type) => ID) 
     id: String
 
-    @Field((type) => String)
+    @Field((type) => String, {})
     name:String
     @Field((type) => String)
     licenseNameRu: String
@@ -28,8 +30,8 @@ export class Anime{
 
     @Field((type) => [AnimeList], { nullable: true })
     animeLists?: AnimeList[]
-    
+
     @Field(() => [AnimeListStatusDistribution])
     userWatchListStatusDistributions: AnimeListStatusDistribution[];
-  
+
 }
