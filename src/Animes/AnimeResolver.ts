@@ -66,8 +66,6 @@ export class AnimeResolver {
     @CacheControl({ maxAge: 60 })
     async allAnimes(@Arg('page') page:number, @Ctx() ctx: Context, ) {
 
-        const CACHE_KEY_PREFIX = "anime:";
-        const CACHE_LIMIT:number = 100;
         const LIMIT: number = 20;
         if(page === 0  ){
             return{

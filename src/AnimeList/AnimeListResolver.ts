@@ -5,9 +5,12 @@ import {Arg, Authorized, Ctx, Field, Int, Mutation, ObjectType, Query, Resolver,
 import {Context} from '../context'
 import {AnimeList, AnimeStatus} from "./AnimeList";
 import {GraphQLError} from "graphql";
+import { CacheControl } from '../cache-control';
 
 
 @ObjectType()
+
+@CacheControl({ maxAge: 60 })
 class AnimeListInfo {
     @Field(() => AnimeStatus) status: AnimeStatus;
 
@@ -16,6 +19,8 @@ class AnimeListInfo {
 
 
 @Resolver(AnimeList)
+
+@CacheControl({ maxAge: 60 })
 export class AnimeListResolver {
 
 

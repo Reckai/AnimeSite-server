@@ -7,12 +7,9 @@ FROM node:latest
 WORKDIR /app
 
 # Копируем файлы зависимостей и устанавливаем их
-COPY package.json package-lock.json ./
+COPY package*.json ./
 RUN npm install
-
-# Копируем исходный код проекта в контейнер
 COPY . .
-
 RUN npx prisma generate
 
 # Запускаем ваше приложение при старте контейнера

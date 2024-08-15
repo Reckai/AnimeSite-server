@@ -30,7 +30,7 @@ const RedisStore = require("connect-redis").default
 
 
 const app = express()
-const keyv= new Keyv("redis://:@localhost:6379")
+const keyv= new Keyv(process.env.REDIS_URL)
 const server1 = async () => {
 
     const schema = await tq.buildSchema({
@@ -46,7 +46,7 @@ const server1 = async () => {
     
   })
 
-    const redisClient = await createClient().connect()
+    const redisClient = await createClient({url:process.env.REDIS_URL}).connect()
     let redisStore = new RedisStore({
         client: redisClient,
         disableTouch: true,
