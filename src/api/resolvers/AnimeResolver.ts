@@ -1,15 +1,10 @@
 import 'reflect-metadata'
 
 import {Arg, Ctx, Field, FieldResolver, ObjectType, Query, Resolver, Root,} from 'type-graphql'
-
-import {Context} from '../context'
-
-import {Anime} from "./Anime";
-
-import {AnimeStatus} from "../AnimeList/AnimeList";
-import {createClient} from "redis";
-import {getAnimes} from "./Service/GetAnimes";
-import { CacheControl } from '../cache-control';
+import { AnimeStatus } from '../types/AnimeList';
+import { Anime } from '../types/Anime';
+import { CacheControl } from '../../cache-control';
+import { Context } from '../../context';
 
 
 
@@ -43,14 +38,14 @@ class AllAnimeResponse {
 export class AnimeResolver {
 
     @FieldResolver(returns => [AnimeListStatusDistribution])
-    async userWatchListStatusDistributions(@Root() id: string, @Ctx() ctx: Context) {
+    @CacheControl({ maxAge: 60 })
+    async userWatchListStatusDistributions(@Root() id: Anime, @Ctx() ctx: Context) {
 
         const animeLists = await ctx.prisma.animeList.groupBy({
             by: ['status'], where: {
                 anime: {
-                    some: {
-                        id: id as string,
-                    },
+                    id: id.id as string
+
                 }
             }, _count: {
                 _all: true,
@@ -82,7 +77,7 @@ console.log('page',page)
 const [items, totalCount] =await Promise.all([
                    ctx.prisma.anime.findMany({
                        include: {
-                           genres: true, studios: true, poster: true, animeLists: true, _count: {select: {animeLists: true}}
+                           genres: true, studios: true, poster: true,  animeLists: true, _count: {select: {animeLists: true}}
                        }, skip:Skip, take: LIMIT
                    }),
                    ctx.prisma.anime.count()
@@ -97,24 +92,27 @@ const [items, totalCount] =await Promise.all([
 
 
     @Query(() =>Anime )
+    @CacheControl({ maxAge: 60 })
     async anime(@Arg('slug') slug: string, @Ctx() ctx: Context) {
+        const userId= ctx.req.session.userId
   try{
         const anime = await ctx.prisma.anime.findUnique({
             where: {
                 slug: slug
             }, include: {
 
-                genres: true, studios: true, poster: true,  animeLists: ctx.userId ? {
+                genres: true, studios: true, poster: true, comments: true,  animeLists: userId ? {
                     where: {
                       AND: [
-                        { anime: { some: { slug } } },
-                        { user: { some: { id: ctx.userId } } }
+                        { anime:  { slug }  },
+                        { user: {  id: userId } }
                       ]
                     }
                   } : undefined
             }
         })
        console.log(anime)
+
         return anime;
        }catch (e){
            console.log(e)}

@@ -15,23 +15,12 @@ model User {
   image         String?
   role          Role        @default(USER)
   password      String?
-  refreshToken  Session[]
   emailVerified DateTime?
   createdAt     DateTime    @default(now())
   Comment       Comment[]
-  Reply         Reply[]
   AnimeList     AnimeList[]
   Account       Account[]
-}
-
-model Session {
-  id        String   @id @default(uuid())
-  token     String   @unique
-  expiresAt DateTime
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-
-  @@unique([userId])
+  likes         Like[]
 }
 
 model Account {
@@ -63,38 +52,38 @@ model VerificationToken {
 }
 
 model Comment {
-  id              String   @id @default(uuid())
-  content         String
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  depth           Int
-  parentId        String?
-  replies         Reply[]
-  threadId        String?
-  viewerCanDelete Boolean
-  viewerCanUpdate Boolean
-  author          User[]
-}
-
-model Reply {
   id              String    @id @default(uuid())
-  content         String
-  author          User[]
-  depth           Int
-  parentId        String?
+  message         String
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  parentId        String?
   viewerCanDelete Boolean
   viewerCanUpdate Boolean
-  threadId        String?
-  Comment         Comment[]
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  anime           Anime     @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  animeId         String
+  parent          Comment?  @relation("ParentChild", fields: [parentId], references: [id], onDelete: Cascade)
+  children        Comment[] @relation("ParentChild")
+  likes           Like[]
+}
+
+model Like {
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userId    String
+  commentId String
+
+  @@id([userId, commentId])
 }
 
 model AnimeList {
-  id     String      @id @default(uuid())
-  status AnimeStatus
-  user   User[]
-  anime  Anime[]
+  id      String      @id @default(uuid())
+  status  AnimeStatus
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  anime   Anime       @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  animeId String
 }
 
 enum AnimeStatus {
@@ -115,6 +104,7 @@ model Anime {
   studios       Studio[]
   poster        Poster[]
   animeLists    AnimeList[]
+  comments      Comment[]
 }
 
 model Studio {

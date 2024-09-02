@@ -5370,6 +5370,7 @@ async function main() {
     })
     console.log(`Created anime with id: ${createdAnime.id}`)
   }
+  
   console.log(`Seeding finished.`)
 }
 

@@ -1,5 +1,5 @@
-import { context } from "../../context"
 import { v4 as uuid } from 'uuid'
+import { context } from '../../context'
 export const getVerificationTokenByEmail = async(email:string)=>{
     try {
         return context.prisma.verificationToken.findFirst({

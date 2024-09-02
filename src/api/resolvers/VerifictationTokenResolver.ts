@@ -1,8 +1,8 @@
 import { Arg, Ctx, Field, Mutation, ObjectType, Resolver } from "type-graphql";
-import { VerificationToken } from "./VerificationToken";
-import { Context } from "../context";
-import { getVerificationTokenByToken } from "./Service/VerificationTokenService";
 import { GraphQLError } from "graphql";
+import { VerificationToken } from "../types/VerificationToken";
+import { getVerificationTokenByToken } from "../../VerificationToken/Service/VerificationTokenService";
+import { Context } from "../../context";
 
 
 @ObjectType()

@@ -1,4 +1,4 @@
-import {Role} from "../Roles/Role";
+import {Role} from "./Role";
 
 export interface Session {
     userId: string

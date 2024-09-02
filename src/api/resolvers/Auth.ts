@@ -1,14 +1,11 @@
 import {Arg, Ctx, Field, Mutation, ObjectType, Resolver} from "type-graphql";
-import { Context } from "../context";
 
 import { GraphQLError } from "graphql";
-import {Void} from "graphql-scalars/typings/typeDefs";
-import {verifyGoogleToken} from "../utils/verifyGoogleToken";
-import {ACCESS_TOKEN} from "../constants";
-import {issueJWTTokenForSession} from "../helpers/Tokens/IssueJWTPair";
-import {User} from "../User/User";
-import {exclude} from "../utils/exclude";
+
 import axios from "axios";
+import { User } from "../types/User";
+import { Context } from "../../context";
+import { exclude } from "../../utils/exclude";
 
 // Define a new object type to represent the return type of the refreshTokens mutation
 @ObjectType()
@@ -30,21 +27,25 @@ async function getGoogleUserInfo(access_token:string) {
     console.error('Error fetching Google user info:', error);
     return null;
   }
+
+
 }
+
+
+
 @Resolver()
 export class AuthResolver {
 
 
   @Mutation(returns => User)
-  async  loginWiaGoogle(@Ctx() ctx: Context, @Arg('token') token:string) : Promise<User| undefined> {
+  async loginWiaGoogle(@Ctx() ctx: Context, @Arg('token') token: string): Promise<User> {
+    try {
+      const googleUser = await getGoogleUserInfo(token);
+      if (!googleUser) {
+        throw new GraphQLError('Invalid token');
+      }
 
-
-   try{
-     const googleUser = await getGoogleUserInfo(token);
-     if(!googleUser){
-       throw  new GraphQLError('Invalid token')
-     }
-     let existingAccount = await ctx.prisma.account.findUnique({
+      let existingAccount = await ctx.prisma.account.findUnique({
 
         where:{
           provider_providerAccountId:{
@@ -57,7 +58,7 @@ export class AuthResolver {
         }
       })
 
-     let user;
+      let user;
 
       if(existingAccount){
         user = existingAccount.user;
@@ -87,7 +88,7 @@ export class AuthResolver {
             },
           });
         }
-          const NewAccount = await ctx.prisma.account.create({
+        const NewAccount = await ctx.prisma.account.create({
           data: {
             userId: user.id,
             type: 'oauth',
@@ -100,14 +101,18 @@ export class AuthResolver {
           },
         });
       }
-        const session = await issueJWTTokenForSession(user.id);
-        ctx.res.cookie(ACCESS_TOKEN, session, { httpOnly: true, maxAge: 1000 * 60 * 15,});
-        return exclude(user, ['password']) as User;
-   }catch(e){
-      if(e instanceof GraphQLError){
-        throw e
+      console.log(user)  
+        ctx.req.session.userId = user.id;
+        return exclude(user, ['password'] ) as User;
+    } catch (e) {
+      if (e instanceof GraphQLError) {
+        throw e;
       }
-   }
+      // If it's not a GraphQLError, wrap it in one
+      throw new GraphQLError('An unexpected error occurred', {
+        originalError: e as Error,
+      });
+    }
   }
 
 }

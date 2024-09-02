@@ -1,6 +1,6 @@
 import {Field, ID, Int, ObjectType} from "type-graphql";
-import {User} from "../User/User";
-import {Comment} from "../Comment/Comment";
+import {User} from "./User";
+import {Comment} from "./Comment";
 
 @ObjectType()
 export class Reply {

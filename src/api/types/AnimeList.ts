@@ -1,9 +1,8 @@
 import 'reflect-metadata'
 import {ObjectType, Field, ID, registerEnumType} from 'type-graphql'
-import {User} from "../User/User";
-import {Anime} from "../Animes/Anime";
-import { CacheControl } from '../cache-control';
-
+import {User} from "./User";
+import {Anime} from "./Anime";
+import { CacheControl } from '../../cache-control';
 
 export enum AnimeStatus {
     WATCHING = 'WATCHING',

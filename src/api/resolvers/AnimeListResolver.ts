@@ -2,11 +2,10 @@ import 'reflect-metadata'
 
 import {Arg, Authorized, Ctx, Field, Int, Mutation, ObjectType, Query, Resolver,} from 'type-graphql'
 
-import {Context} from '../context'
-import {AnimeList, AnimeStatus} from "./AnimeList";
 import {GraphQLError} from "graphql";
-import { CacheControl } from '../cache-control';
-
+import { CacheControl } from '../../cache-control';
+import { AnimeList, AnimeStatus } from '../types/AnimeList';
+import { Context } from '../../context';
 
 @ObjectType()
 
@@ -33,9 +32,8 @@ export class AnimeListResolver {
             const animeListInfo = await ctx.prisma.animeList.groupBy({
                 by: ['status'], where: {
                     anime: {
-                        some: {
                             id: animeId,
-                        },
+
                     },
                 }, _count: {
                     status: true,
@@ -57,27 +55,18 @@ export class AnimeListResolver {
         @Arg('status', () => AnimeStatus) status: AnimeStatus,
         @Ctx() ctx: Context
     ): Promise<AnimeStatus> {
-
-        if (!ctx.userId) {
-            throw new GraphQLError("You must be logged in to query this schema", {
-                extensions: {
-                    code: 'UNAUTHENTICATED',
-                },
-            });
-        }
-        console.log('userId', ctx.userId)
+const userId= ctx.req.session.userId;
         try {
             const existingAnimeList = await ctx.prisma.animeList.findFirst({
                 where: {
                     anime: {
-                        some: {
                             id: animeId,
-                        },
+
                     },
                     user: {
-                        some: {
-                            id: ctx.userId,
-                        },
+
+                            id: userId,
+
                     },
                 },
             });
@@ -92,7 +81,7 @@ export class AnimeListResolver {
                 await ctx.prisma.animeList.create({
                     data: {
                         anime: { connect: { id: animeId } },
-                        user: { connect: { id: ctx.userId } },
+                        user: { connect: { id: userId } },
                         status: status,
                     },
                 });
@@ -126,14 +115,11 @@ export class AnimeListResolver {
             const existingAnimeList = await ctx.prisma.animeList.findFirst({
                 where: {
                     anime: {
-                        some: {
                             id: animeId,
-                        },
+
                     },
                     user: {
-                        some: {
                             id: ctx.userId,
-                        },
                     },
                 },
             });

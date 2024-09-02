@@ -3,19 +3,15 @@
 import 'reflect-metadata'
 import {Arg, Authorized, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver} from "type-graphql";
 
-import {Context} from "../context";
-
 import bcrypt from 'bcryptjs';
 
 import {GraphQLError} from "graphql";
-import {issueJWTTokenForSession} from "../helpers/Tokens/IssueJWTPair";
-import jwt from "jsonwebtoken";
-import {ACCESS_TOKEN, EXPIRES_IN_30D, HTTP_ONLY} from "../constants";
-import { generateVerificationToken } from '../VerificationToken/Service/VerificationTokenService';
-import { sendVerificationEmail } from '../Resend/ResendService';
 import { VerificationToken } from '@prisma/client';
+import { User } from '../types/User';
+import { Context } from '../../context';
+import { generateVerificationToken } from '../../VerificationToken/Service/VerificationTokenService';
+import { sendVerificationEmail } from '../../Resend/ResendService';
 
-import {User} from "./User";
 
 
 @InputType()
@@ -53,10 +49,6 @@ export class UserResolver {
 
 
         return 'Check your email for verification link'
-        // ctx.res.cookie(ACCESS_TOKEN, session, { httpOnly: HTTP_ONLY, maxAge: EXPIRES_IN_30D  })
-        // return {
-        //     user: existingUser as User,
-        // }
     }
 
 
@@ -69,13 +61,14 @@ try {
     const user = await ctx.prisma.user.findUnique({
         where: {
             email: args.email
-
         },
 
     })
+
     if (!user) {
         throw new GraphQLError('No such user found')
     }
+
     const valid = await bcrypt.compare(args.password, user.password??"")
     if (!valid) {
         throw new GraphQLError('Invalid password or email')
@@ -85,8 +78,9 @@ try {
         await sendVerificationEmail(verificationToken.email, verificationToken.token )
         throw new GraphQLError('Email not verified, check your email for verification link')
     }
-   const session = await issueJWTTokenForSession(user.id)
-    ctx.res.cookie(ACCESS_TOKEN, session, { httpOnly: HTTP_ONLY, maxAge: EXPIRES_IN_30D})
+
+    ctx.req.session.userId = user.id;
+    ctx.req.session.roles = ['USER'];
     return {
         user: user as User
     }
@@ -100,10 +94,11 @@ try {
     @Authorized(['ADMIN', 'USER'])
     @Query((returns) => User)
     async me(@Ctx() ctx: Context) {
-       const userId = jwt.decode(ctx.token as string)
+        const userId = ctx.req.session.userId;
+
         return  ctx.prisma.user.findUnique({
             where: {
-                id: ctx.userId
+                id: userId
             },
             select:{
                 id: true,
@@ -124,11 +119,10 @@ try {
            await ctx.prisma.animeList.deleteMany({
                where: {
                    user: {
-                       every: {
                            id: {
                                not: undefined
                            }
-                       }
+
                    },
                },
            });

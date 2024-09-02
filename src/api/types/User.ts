@@ -1,10 +1,10 @@
 import "reflect-metadata";
 import { Field, ID, ObjectType } from "type-graphql";
-import { AnimeList } from "../AnimeList/AnimeList";
-import { Reply } from "../Reply/Reply";
-import { Comment } from "../Comment/Comment";
-import { Session} from "../Tokens/Session";
-import { Role } from "../Roles/Role";
+import { AnimeList } from "./AnimeList";
+import { Reply } from "./Reply";
+import { Comment } from "./Comment";
+import { Session} from "../../Tokens/Session";
+import { Role } from "./Role";
 
 @ObjectType()
 export class User {
