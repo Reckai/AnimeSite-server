@@ -52,20 +52,18 @@ model VerificationToken {
 }
 
 model Comment {
-  id              String    @id @default(uuid())
-  message         String
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  parentId        String?
-  viewerCanDelete Boolean
-  viewerCanUpdate Boolean
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId          String
-  anime           Anime     @relation(fields: [animeId], references: [id], onDelete: Cascade)
-  animeId         String
-  parent          Comment?  @relation("ParentChild", fields: [parentId], references: [id], onDelete: Cascade)
-  children        Comment[] @relation("ParentChild")
-  likes           Like[]
+  id        String    @id @default(uuid())
+  message   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  parentId  String?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  anime     Anime     @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  animeId   String
+  parent    Comment?  @relation("ParentChild", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Comment[] @relation("ParentChild")
+  likes     Like[]
 }
 
 model Like {

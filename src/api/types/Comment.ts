@@ -20,11 +20,7 @@ export class Comment {
   @Field(() => String, { nullable: true })
   parentId: string | null;
 
-  @Field()
-  viewerCanDelete: boolean;
-
-  @Field()
-  viewerCanUpdate: boolean;
+ 
 
   @Field(() => User)
   user: User;

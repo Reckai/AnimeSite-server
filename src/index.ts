@@ -42,7 +42,7 @@ app.use(
 
 app.use(
     cors<cors.CorsRequest>({
-      origin: '*',
+      origin: 'http://localhost:3000',
       credentials:true,            //access-control-allow-credentials:true
      
     }),
