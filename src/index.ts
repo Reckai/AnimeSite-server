@@ -15,6 +15,11 @@ import { KeyvAdapter } from '@apollo/utils.keyvadapter';
 import Keyv from 'keyv';
 import { schemaConfig, sessionConfig } from './config/ApolloServerConfigurator';
 const RedisStore = require("connect-redis").default
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const PORT = process.env.PORT || 4000;
 
 const startServer = async () =>{
   const app = express();
@@ -55,8 +60,8 @@ app.use(
     })
 )
 
-await new Promise<void>((resolve) => httpServer.listen({port: 4000}, resolve));
-console.log(`🚀 Server ready at http://localhost:4000/`);
+await new Promise<void>((resolve) => httpServer.listen({ port: PORT }, resolve));
+console.log(`🚀 Server ready at http://localhost:${PORT}/`);
 
 }
 

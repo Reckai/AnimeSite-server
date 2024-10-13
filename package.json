@@ -1,7 +1,9 @@
 {
   "name": "typegraphql-example",
   "scripts": {
-    "dev": "ts-node-dev --no-notify --respawn --transpile-only src/index.ts"
+    "dev": "ts-node-dev --no-notify --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "@apollo/server": "4.9.5",

@@ -222,7 +222,48 @@ async userCanUpdate(@Root() comment: Comment, @Ctx() ctx: Context): Promise<bool
     const userId = ctx.req.session.userId;
     return userId === comment.userId;
 }
+    @Authorized(['USER','ADMIN'])
+    @Mutation(() => Comment)
+    async deleteComment(
+        @Arg("commentId") commentId: string,
+        @Ctx() ctx: Context
+    ): Promise<Comment> {
+        try {
+            const userId = ctx.req.session.userId;
+            if (!userId) {
+                throw new GraphQLError("Not authenticated", {
+                    extensions: { code: 'UNAUTHENTICATED' },
+                });
+            }
 
+            const comment = await ctx.prisma.comment.findUnique({
+                where: { id: commentId },
+            });
+
+            if (!comment) {
+                throw new GraphQLError("Comment not found", {
+                    extensions: { code: 'NOT_FOUND' },
+                });
+            }
+
+            if (comment.userId !== userId) {
+                throw new GraphQLError("Not authorized to delete this comment", {
+                    extensions: { code: 'FORBIDDEN' },
+                });
+            }
+
+            await ctx.prisma.comment.delete({
+                where: { id: commentId },
+            });
+
+            return comment as Comment;
+        } catch (error) {
+            console.error("Error deleting comment:", error);
+            throw new GraphQLError("Failed to delete comment", {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
+        }   
+    }
 
 
     @Query(() => [Comment])
