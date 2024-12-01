@@ -38,7 +38,7 @@ export class AuthResolver {
 
 
   @Mutation(returns => User)
-  async loginWiaGoogle(@Ctx() ctx: Context, @Arg('token') token: string): Promise<User> {
+  async loginWiaGoogle(@Ctx() ctx: Context, @Arg('token',()=>String) token: string): Promise<User> {
     try {
       const googleUser = await getGoogleUserInfo(token);
       if (!googleUser) {
@@ -73,7 +73,7 @@ export class AuthResolver {
             where: { id: user.id },
             data: {
               name: user.name || googleUser.name,
-              image: user.image || googleUser.picture,
+              avatarId: user.avatarId || googleUser.picture,
               emailVerified: user.emailVerified || new Date(),
             },
           });
@@ -83,7 +83,7 @@ export class AuthResolver {
             data: {
               email: googleUser.email,
               name: googleUser.name,
-              image: googleUser.picture,
+              avatarId: googleUser.picture,
               emailVerified: new Date(),
             },
           });

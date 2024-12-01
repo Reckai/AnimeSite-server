@@ -8,30 +8,28 @@ export class Comment {
   @Field(() => ID)
   id: string;
 
-  @Field()
+  @Field(() => String)
   message: string;
 
-  @Field()
+  @Field(() => Date)
   createdAt: Date;
 
-  @Field()
+  @Field(() => Date)
   updatedAt: Date;
 
   @Field(() => String, { nullable: true })
   parentId: string | null;
 
- 
-
   @Field(() => User)
   user: User;
 
-  @Field()
+  @Field(() => String)
   userId: string;
 
   @Field(() => Anime)
   anime: Anime;
 
-  @Field()
+  @Field(() => String)
   animeId: string;
 
   @Field(() => Comment, { nullable: true })
@@ -43,4 +41,3 @@ export class Comment {
   @Field(() => [Like])
   likes: Like[];
 }
-

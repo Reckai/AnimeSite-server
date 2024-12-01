@@ -5359,27 +5359,39 @@
         }
       
     ]
-
-     const animeData = prepareAnimeData(animeList);
-   
-async function main() {
-  console.log(`Start seeding ...`)
-  for (const anime of animeData) {
-    const createdAnime = await prisma.anime.create({
-      data: anime,
-    })
-    console.log(`Created anime with id: ${createdAnime.id}`)
-  }
   
-  console.log(`Seeding finished.`)
-}
-
-main()
-  .catch(async (e) => {
-    console.error(e)
-    await prisma.$disconnect()
-    process.exit(1)
-  })
-  .finally(async () => {
-    await prisma.$disconnect()
-  })
+     const animeData = prepareAnimeData(animeList);
+     
+     async function main() {
+       try {
+         console.log(`Start seeding ...`)
+         
+         for (const anime of animeData) {
+           // Проверяем существование записи перед созданием
+           const exists = await prisma.anime.findUnique({
+             where: { slug: anime.slug }
+           })
+           
+           if (!exists) {
+             await prisma.anime.create({
+               data: anime
+             })
+           } else {
+             console.log(`Anime with slug ${anime.slug} already exists, skipping...`)
+           }
+         }
+         
+         console.log(`Seeding finished.`)
+       } catch (error) {
+         console.error('Error during seeding:', error)
+         throw error
+       } finally {
+         await prisma.$disconnect()
+       }
+     }
+     
+     main()
+       .catch((error) => {
+         console.error(error)
+         process.exit(1)
+       })

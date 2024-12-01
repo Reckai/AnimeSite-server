@@ -10,7 +10,7 @@ export class Session {
   @Field(() => String)
   token: string
 
-  @Field()
+  @Field(()=>Date)
   expiresAt: Date
 
   @Field(()=>String)

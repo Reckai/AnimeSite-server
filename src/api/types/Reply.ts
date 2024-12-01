@@ -7,7 +7,7 @@ export class Reply {
     @Field(() => ID)
     id: string;
 
-    @Field()
+    @Field(() => String)
     content: string;
 
     @Field(() => [User], { nullable: true })
@@ -16,24 +16,24 @@ export class Reply {
     @Field(() => Int)
     depth: number;
 
-    @Field({ nullable: true })
+    @Field(() => String, { nullable: true })
     parentId?: string;
 
-    @Field()
+    @Field(() => Date)
     createdAt: Date;
 
     @Field(() => Date)
     updatedAt: Date;
 
-    @Field()
+    @Field(() => Boolean)
     viewerCanDelete: boolean;
 
-    @Field()
+    @Field(() => Boolean)
     viewerCanUpdate: boolean;
 
-    @Field({ nullable: true })
+    @Field(() => String, { nullable: true })
     threadId?: string;
 
-    @Field(() => [Comment],)
+    @Field(() => [Comment], { nullable: true })
     comments?: Comment[];
 }

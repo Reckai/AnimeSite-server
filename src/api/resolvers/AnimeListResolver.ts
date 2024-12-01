@@ -25,7 +25,7 @@ export class AnimeListResolver {
 
     @Query(() => [AnimeListInfo], {nullable: true})
 
-    async getAnimeListInfo(@Arg('animeId') animeId: string, @Ctx() ctx: Context): Promise<AnimeListInfo[] | null> {
+    async getAnimeListInfo(@Arg('animeId', ()=>String) animeId: string, @Ctx() ctx: Context): Promise<AnimeListInfo[] | null> {
 
 
         try {
@@ -51,7 +51,7 @@ export class AnimeListResolver {
     @Authorized(['ADMIN', 'USER'])
     @Mutation(() => AnimeStatus)
     async changeStatusOfAnime(
-        @Arg('animeId') animeId: string,
+        @Arg('animeId', () => String) animeId: string,
         @Arg('status', () => AnimeStatus) status: AnimeStatus,
         @Ctx() ctx: Context
     ): Promise<AnimeStatus> {
@@ -98,10 +98,10 @@ const userId= ctx.req.session.userId;
     @Authorized(['ADMIN', 'USER'])
     @Mutation(() => Boolean)
     async deleteAnimeStatus(
-        @Arg('animeId') animeId: string,
+        @Arg('animeId', () => String) animeId: string,
 
         @Ctx() ctx: Context
-    ): Promise<Boolean> {
+    ): Promise<boolean> {
 
         if (!ctx.userId) {
             throw new GraphQLError("You must be logged in to query this schema", {

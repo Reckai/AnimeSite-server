@@ -16,10 +16,10 @@ export class CommentResolver {
     @Authorized(["USER", "ADMIN"])
     @Mutation(() => Comment)
     async createComment(
-        @Arg('message') message: string,
-        @Arg('animeId') animeId: string,
+        @Arg('message',()=>String) message: string,
+        @Arg('animeId',()=>String) animeId: string,
         @Ctx() ctx: Context,
-        @Arg('parentId', { nullable: true }) parentId?: string
+        @Arg('parentId',()=>String, { nullable: true }) parentId?: string
     ): Promise<Comment> {
         const userId = ctx.req.session.userId;
 
@@ -55,7 +55,7 @@ export class CommentResolver {
                 },
             });
 
-            return newComment as Comment;
+            return newComment as unknown as Comment;
         } catch (error) {
             console.error("Error creating comment:", error);
             throw new GraphQLError("Failed to create comment", {
@@ -97,8 +97,8 @@ export class CommentResolver {
     @Authorized(["USER", "ADMIN"])
     @Mutation(() => Comment)
     async updateComment(
-        @Arg('commentId') commentId: string,
-        @Arg('message') message: string,
+        @Arg('commentId',()=>String) commentId: string,
+        @Arg('message',()=>String) message: string,
         @Ctx() ctx: Context
     ): Promise<Comment> {
         const userId = ctx.req.session.userId;
@@ -144,7 +144,7 @@ export class CommentResolver {
                 },
             });
 
-            return updatedComment as Comment;
+            return updatedComment as unknown as Comment;
         } catch (error) {
             console.error("Error updating comment:", error);
             throw new GraphQLError("Failed to update comment", {
@@ -156,7 +156,7 @@ export class CommentResolver {
     @Authorized(["USER", "ADMIN"])
     @Mutation(() => Number)
     async likeComment(
-        @Arg('commentId') commentId: string,
+        @Arg('commentId',()=>String) commentId: string,
         @Ctx() ctx: Context
     ): Promise<number> {
         const userId = ctx.req.session.userId;
@@ -225,7 +225,7 @@ async userCanUpdate(@Root() comment: Comment, @Ctx() ctx: Context): Promise<bool
     @Authorized(['USER','ADMIN'])
     @Mutation(() => Comment)
     async deleteComment(
-        @Arg("commentId") commentId: string,
+        @Arg("commentId",()=>String) commentId: string,
         @Ctx() ctx: Context
     ): Promise<Comment> {
         try {
@@ -268,7 +268,7 @@ async userCanUpdate(@Root() comment: Comment, @Ctx() ctx: Context): Promise<bool
 
     @Query(() => [Comment])
     async getCommentsByAnimeId(
-        @Arg("slug") slug: string,
+        @Arg("slug",()=>String) slug: string,
         @Ctx() ctx: Context,
         @Arg("orderBy", () => SortOrder, { nullable: true }) orderBy?: SortOrder,
       

@@ -16,7 +16,7 @@ class VerifyEmailResponse {
 @Resolver(VerificationToken)
 export class VerificationTokenResolver {
   @Mutation((returns) => VerifyEmailResponse)
-  async VerifyEmailByToken(@Arg('token') token: string,@Ctx() context: Context): Promise<VerifyEmailResponse> {
+  async VerifyEmailByToken(@Arg('token',()=>String) token: string,@Ctx() context: Context): Promise<VerifyEmailResponse> {
  try{
  
   const existingToken = await getVerificationTokenByToken(token)

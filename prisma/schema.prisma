@@ -12,7 +12,9 @@ model User {
   id            String      @id @default(uuid())
   email         String      @unique
   name          String?
-  image         String?
+  currentAvatar Image?      @relation("UserAvatar", fields: [avatarId], references: [id])
+  avatarId      String?     @unique
+  images        Image[]     @relation("UserImages")
   role          Role        @default(USER)
   password      String?
   emailVerified DateTime?
@@ -23,6 +25,35 @@ model User {
   likes         Like[]
 }
 
+model Image {
+  id           String    @id @default(uuid())
+  filename     String
+  originalName String
+  path         String
+  mimeType     String
+  size         Int
+  width        Int?
+  height       Int?
+  type         ImageType
+  url          String
+  thumbnailUrl String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  userId       String
+  user         User      @relation("UserImages", fields: [userId], references: [id])
+  avatarUser   User?     @relation("UserAvatar")
+  blurhash     String?
+
+  @@index([userId])
+}
+
+enum ImageType {
+  AVATAR
+  COVER
+  GENERAL
+}
+
+// Assuming you have a User model
 model Account {
   id                String  @id @default(cuid())
   userId            String

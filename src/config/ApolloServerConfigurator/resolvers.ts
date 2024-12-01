@@ -5,5 +5,6 @@ import {AuthResolver} from '../../api/resolvers/Auth';
 import {VerificationTokenResolver} from '../../api/resolvers/VerifictationTokenResolver'
 import { NonEmptyArray } from "type-graphql";
 import { UserResolver } from "../../api/resolvers/UserResolver";
-const resolvers: NonEmptyArray<Function> = [AnimeResolver, AnimeListResolver, CommentResolver, VerificationTokenResolver ,UserResolver, AuthResolver] 
+import { ImageResolver } from "../../api/resolvers/ImageResolver";
+const resolvers: NonEmptyArray<Function> = [AnimeResolver, AnimeListResolver, CommentResolver, VerificationTokenResolver ,UserResolver, ImageResolver, AuthResolver] 
 export default resolvers

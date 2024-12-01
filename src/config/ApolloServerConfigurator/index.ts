@@ -10,7 +10,8 @@ export const schemaConfig: tq.BuildSchemaOptions = {
         resolvers,
         scalarsMap: [{type: GraphQLScalarType, scalar: DateTimeResolver}],
         validate: {forbidUnknownValues: false},
-        authChecker
+        authChecker,
+        
 }
 
 export const sessionConfig:session.SessionOptions = {

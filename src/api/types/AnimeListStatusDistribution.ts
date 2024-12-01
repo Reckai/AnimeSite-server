@@ -6,6 +6,6 @@ export class AnimeListStatusDistribution {
   @Field(() => AnimeStatus)
   status: AnimeStatus;
 
-  @Field()
+  @Field(()=> Number)
   count: number;
 }

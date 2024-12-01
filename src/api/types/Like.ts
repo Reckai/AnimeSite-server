@@ -6,9 +6,9 @@ export class Like {
   @Field(() => User)
   user: User;
 
-  @Field()
+  @Field(()=>String)
   userId: string;
 
-  @Field()
+  @Field(()=>String)
   commentId: string;
 }

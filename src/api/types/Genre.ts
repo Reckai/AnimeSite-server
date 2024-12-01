@@ -8,5 +8,5 @@ export class Genre{
     name:    String
     @Field((type) => String)
     russian: String
-
+    
 }
