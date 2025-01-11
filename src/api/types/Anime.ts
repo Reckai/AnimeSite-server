@@ -40,7 +40,4 @@ export class Anime {
     @Field(() => [Comment], { nullable: true })
     comments?: Comment[];
 
-    // Keeping this field as it's not in the Prisma schema but might be used in the GraphQL API
-    @Field(() => [AnimeListStatusDistribution])
-    userWatchListStatusDistributions: AnimeListStatusDistribution[];
 }

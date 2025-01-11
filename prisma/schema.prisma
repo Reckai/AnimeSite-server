@@ -3,6 +3,10 @@ generator client {
   binaryTargets = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
 }
 
+generator typegraphql {
+  provider = "typegraphql-prisma"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -138,14 +142,14 @@ model Anime {
 
 model Studio {
   id    String  @id @default(uuid())
-  name  String?
+  name  String  @unique
   Anime Anime[]
 }
 
 model Genre {
   id      String  @id @default(uuid())
-  name    String?
-  russian String?
+  name    String  @unique
+  russian String  @unique
   Anime   Anime[]
 }
 

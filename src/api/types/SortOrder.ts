@@ -5,7 +5,7 @@ enum SortField {
   CREATED_AT = "createdAt",
 }
 
-enum SortDirection {
+export enum SortDirection {
   ASC = "asc",
   DESC = "desc",
 }
