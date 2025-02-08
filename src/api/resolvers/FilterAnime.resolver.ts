@@ -1,10 +1,10 @@
 import { Arg, Ctx, Field, Int, ObjectType, Query, Resolver } from "type-graphql";
 import { Context } from "../../context";
-import { AnimeFilterInput, FilterableAnimeFields, PaginatedAnimeResult, RelationFilter } from "../types/SearchAnimeResult";
 import { Genre } from "../types/Genre";
 import { Studio } from "../types/Studio";
 import { AnimeFilterParams, FilterConfig, FilterParams } from "../types/FetchReleasesTypes";
 import { Prisma } from "@prisma/client";
+import { Anime } from "../types/Anime";
 
 @ObjectType()
 class GenreFilterResult {
@@ -51,13 +51,24 @@ export class ReleasesFilters {
     studios: StudioFilterResult[];
 }
 
+@ObjectType()
+export class PaginatedAnimeResult {
+    @Field(() => [Anime], { nullable: true })
+    animes?: Anime[];
+    
+    @Field(() => Int)
+    count: number;
+
+    @Field(() => Boolean)
+    hasNextPage: boolean;
+}
 
 @Resolver()
 export class FilterAnimeResolver {
     
     @Query(()=>ReleasesFilters)
     async fetchReleasesFilters(@Ctx() ctx: Context):Promise<ReleasesFilters>{
-        const [genres, studios] = await Promise.all([
+        const [genres, foundedStudios] = await Promise.all([
             ctx.prisma.genre.findMany({
                 select: {id: true, russian: true}
             }),
@@ -65,15 +76,42 @@ export class FilterAnimeResolver {
                 select: {id: true, name: true}
             })
         ])
-        const genreCounts = await ctx.prisma.anime.count()
-        const studioCounts = await ctx.prisma.anime.count()
+
+        // Get count for each genre
+        const genreCounts = await Promise.all(
+            genres.map(genre => 
+                ctx.prisma.anime.count({
+                    where: {
+                        genres: {
+                            some: {
+                                id: genre.id
+                            }
+                        }
+                    }
+                })
+            )
+        )
+        
+        const studioCounts = await Promise.all(
+            foundedStudios.map(studio => 
+                ctx.prisma.anime.count({
+                    where: {
+                        studios: {
+                            some: {
+                                id: studio.id
+                            }
+                        }
+                    }
+                })
+            )
+        )
         return {
-            genres: genres.map((genre) => ({
-                count: genreCounts,
+            genres: genres.map((genre, index) => ({
+                count: genreCounts[index],
                 genres: [genre as Pick<Genre, "id" | "russian">]
             })),
-            studios: studios.map((studio) => ({
-                count: studioCounts,
+            studios: foundedStudios.map((studio,index) => ({
+                count: studioCounts[index],
                 studios: [studio as Pick<Studio, "id" | "name">]
             }))
         }
@@ -126,39 +164,55 @@ export class FilterAnimeResolver {
     async animesWithFilter(
         @Arg("filter", () => AnimeFilterParams) params: AnimeFilterParams, 
         @Ctx() ctx: Context
-    ): Promise<{animes: Array<Prisma.AnimeGetPayload<{}>>, count: number}> {
-        const { take, cursor, orderBy, filters } = params;
-        
+    ): Promise<{animes: Array<Prisma.AnimeGetPayload<{}>>, count: number, hasNextPage: boolean}> {
+        let { take, cursor, orderBy, filters, ruName } = params;
+        if(!take){take = 20}
         const conditions: Prisma.AnimeWhereInput[] = [];
-
+        
+        console.log('Received filters:', filters);
+        console.log("name", ruName)
         if (filters) {
             Object.entries(filters).forEach(([filterType, filterParams]) => {
-                conditions.push(...this.buildFilterConditions(filterType, filterParams));
+              
+                const newConditions = this.buildFilterConditions(filterType, filterParams);
+              
+                conditions.push(...newConditions);
             });
         }
-
-        const whereCondition = {
+        
+        console.log('Final conditions:', conditions);
+        
+        const whereCondition: Prisma.AnimeWhereInput = {
+            licenseNameRu: {
+                contains: ruName,
+                mode:'insensitive'
+            },
             AND: conditions.length ? conditions : undefined
         };
 
         const [animes, count] = await Promise.all([
             ctx.prisma.anime.findMany({
-                take: take ?? 10,
+                take: take + 1,
                 skip: cursor ? 1 : 0,
                 cursor: cursor ? { id: cursor } : undefined,
                 where: whereCondition,
+                
                 orderBy,
-                include: Object.values(this.filterConfigs).reduce((acc, config) => ({
-                    ...acc,
-                    [config.relation]: true
-                }), {})
+                include: {
+                    poster: true,
+                    genres: true,
+                    studios: true
+                }
             }),
             ctx.prisma.anime.count({
                 where: whereCondition
             })
         ]);
-         
-        return { animes, count };
+
+        const hasNextPage = animes.length > take;
+        const paginatedAnimes = hasNextPage ? animes.slice(0, -1) : animes;
+        
+        return { animes: paginatedAnimes, count, hasNextPage };
     }
   
   

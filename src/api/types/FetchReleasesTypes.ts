@@ -25,6 +25,8 @@ export class AnimeFilterParams {
     @Field(() => String, { nullable: true })
     cursor?: string;
 
+    @Field(() => String, { nullable: true })
+    ruName?: string;
 
     @Field(() => GraphQLJSONObject, { nullable: true })
     orderBy?: Prisma.AnimeOrderByWithRelationInput;

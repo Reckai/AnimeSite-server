@@ -73,7 +73,6 @@ export class AnimeResolver {
 
         const Skip = (page - 1) * LIMIT;
 
-        console.log('page',page)
         const [items, totalCount] =await Promise.all([
                    ctx.prisma.anime.findMany({
                        include: {
@@ -111,7 +110,6 @@ export class AnimeResolver {
                       } : undefined
                 }
             })
-           console.log(anime)
 
             return anime;
            }catch (e){

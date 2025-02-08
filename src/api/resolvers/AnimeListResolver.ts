@@ -86,12 +86,10 @@ const userId= ctx.req.session.userId;
                     },
                 });
                 StatusOfAnime = status
-                console.log(`AnimeList for anime with id ${animeId} created successfully.`);
             }
 
             return StatusOfAnime;
         } catch (error) {
-            console.error(`Error changing status of AnimeList for anime with id ${animeId}: ${error}`);
             throw new GraphQLError('Something went wrong');
         }
     }
@@ -110,7 +108,6 @@ const userId= ctx.req.session.userId;
                 },
             });
         }
-        console.log('userId', ctx.userId)
         try {
             const existingAnimeList = await ctx.prisma.animeList.findFirst({
                 where: {

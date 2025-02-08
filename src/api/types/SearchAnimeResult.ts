@@ -44,6 +44,8 @@ export class PaginatedAnimeResult {
     animes?: Anime[];
     @Field(() => Int )
     count: number;
+    @Field(type => Boolean)
+    hasNextPage: boolean;
 }
 
 export enum FilterableAnimeFields {
